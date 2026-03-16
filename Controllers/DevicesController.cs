@@ -11,12 +11,10 @@ namespace IMISMonitor.Controllers;
 public class DevicesController : ControllerBase
 {
     private readonly AppDbContext _db;
-    private readonly ILogger<DevicesController> _logger;
 
     public DevicesController(AppDbContext db, ILogger<DevicesController> logger)
     {
         _db = db;
-        _logger = logger;
     }
 
     [HttpGet("devices")]
@@ -39,15 +37,12 @@ public class DevicesController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to retrieve device list");
             return StatusCode(StatusCodes.Status500InternalServerError, new { error = "Failed to retrieve devices." });
         }
     }
 
     private async Task CalculateDeviceMetricsAsync(MonitoredDevice device)
     {
-        // Metrics are now calculated in-memory during ping cycles
-        // No database queries needed
         await Task.CompletedTask;
     }
 
@@ -88,7 +83,6 @@ public class DevicesController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to retrieve downtime logs");
             return StatusCode(StatusCodes.Status500InternalServerError, new { error = "Failed to retrieve logs." });
         }
     }
@@ -106,14 +100,10 @@ public class DevicesController : ControllerBase
             {
                 return NotFound(new { error = "Device not found." });
             }
-
-            // Historical latency trends are not persisted to database.
-            // The API returns an empty array since we only track in-memory session statistics.
             return Ok(new[] { new { message = "Historical latency data not available. Only in-memory session statistics are tracked.", recordedAt = DateTime.UtcNow } });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to retrieve latency trends for device {DeviceId}", deviceId);
             return StatusCode(StatusCodes.Status500InternalServerError, new { error = "Failed to retrieve latency trends." });
         }
     }
@@ -151,7 +141,6 @@ public class DevicesController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to retrieve stats for device {DeviceId}", deviceId);
             return StatusCode(StatusCodes.Status500InternalServerError, new { error = "Failed to retrieve device stats." });
         }
     }

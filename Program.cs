@@ -6,22 +6,23 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ─── Configuration ────────────────────────────────────────────────────────────
+
+
 builder.Services.Configure<MonitorSettings>(
     builder.Configuration.GetSection("MonitorSettings"));
 
-// ─── Data Layer ───────────────────────────────────────────────────────────────
+
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// ─── Real-time ────────────────────────────────────────────────────────────────
+
 builder.Services.AddSignalR();
 
-// ─── MVC / Razor Pages ────────────────────────────────────────────────────────
+
 builder.Services.AddControllers();
 builder.Services.AddRazorPages();
 
-// ─── Swagger ──────────────────────────────────────────────────────────────────
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -33,24 +34,14 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// ─── Background Services ──────────────────────────────────────────────────────
+
 builder.Services.AddHostedService<PingMonitorService>();
 
-// ─── Authentication ──────────────────────────────────────────────────────────
-// For production, use Windows Authentication (IIS) or implement a proper auth scheme.
-// TO FIX: Uncomment the following in production and configure accordingly.
-//
-// builder.Services.AddAuthentication(NegotiateDefaults.AuthenticationScheme)
-//     .AddNegotiate();
-//
-// builder.Services.AddAuthorization();
 
-// ─── CORS (restricted for production) ──────────────────────────────────────
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("LocalDev", policy =>
     {
-        // SECURITY: In development only. For production, use specific origins and remove AllowAnyHeader/AllowAnyMethod.
         policy
             .WithOrigins(
                 "http://localhost:5000",
@@ -63,7 +54,6 @@ builder.Services.AddCors(options =>
 
     options.AddPolicy("Production", policy =>
     {
-        // SECURITY: For production deployment, replace with your actual internal domain(s).
         policy
             .WithOrigins("https://your-internal-domain.local")
             .WithMethods("GET", "POST")
@@ -72,25 +62,24 @@ builder.Services.AddCors(options =>
     });
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
-var app = builder.Build();
-// ─────────────────────────────────────────────────────────────────────────────
 
-// Ensure the SQLite database and schema exist before serving any requests.
+var app = builder.Build();
+
+
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     db.Database.Migrate();
 }
 
-// ─── Middleware Pipeline ──────────────────────────────────────────────────────
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI(c =>
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "IMIS Monitor API v1"));
     
-    // Apply CSP headers in development as well
+   
     app.Use(async (context, next) =>
     {
         context.Response.Headers.Append("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' ws: wss:; object-src 'none'; base-uri 'self'; frame-ancestors 'none';");
@@ -98,8 +87,6 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-// ─── Security Headers (for production) ─────────────────────────────────────────
-// SECURITY: These headers protect against various client-side attacks.
 if (!app.Environment.IsDevelopment())
 {
     app.Use(async (context, next) =>
@@ -118,7 +105,7 @@ app.UseStaticFiles();
 app.UseRouting();
 app.UseCors(app.Environment.IsDevelopment() ? "LocalDev" : "Production");
 
-// ─── Endpoints ────────────────────────────────────────────────────────────────
+
 app.MapHub<StatusHub>("/hubs/status");
 app.MapControllers();
 app.MapRazorPages();

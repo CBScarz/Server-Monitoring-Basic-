@@ -11,10 +11,6 @@ public class DowntimeEvent
     public DateTime WentOfflineAt { get; set; }
     public DateTime? CameBackOnlineAt { get; set; }
 
-    /// <summary>
-    /// Computed duration of the downtime event. Returns the elapsed time since going offline
-    /// if the device is still down, or the total downtime if it has recovered.
-    /// </summary>
     [NotMapped]
     public TimeSpan? Duration => CameBackOnlineAt.HasValue
         ? CameBackOnlineAt.Value - WentOfflineAt

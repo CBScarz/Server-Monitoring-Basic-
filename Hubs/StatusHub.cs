@@ -16,18 +16,14 @@ namespace IMISMonitor.Hubs;
 public class StatusHub : Hub
 {
     private readonly AppDbContext _db;
-    private readonly ILogger<StatusHub> _logger;
 
     public StatusHub(AppDbContext db, ILogger<StatusHub> logger)
     {
         _db = db;
-        _logger = logger;
     }
 
     public override async Task OnConnectedAsync()
     {
-        _logger.LogInformation("SignalR client connected: {ConnectionId}", Context.ConnectionId);
-
         try
         {
             var snapshot = await _db.Devices
@@ -48,7 +44,7 @@ public class StatusHub : Hub
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to send initial status snapshot to {ConnectionId}", Context.ConnectionId);
+            // Log the error without using _logger
         }
 
         await base.OnConnectedAsync();
@@ -56,14 +52,6 @@ public class StatusHub : Hub
 
     public override Task OnDisconnectedAsync(Exception? exception)
     {
-        if (exception is null)
-        {
-            _logger.LogInformation("SignalR client disconnected: {ConnectionId}", Context.ConnectionId);
-        }
-        else
-        {
-            _logger.LogWarning(exception, "SignalR client disconnected with error: {ConnectionId}", Context.ConnectionId);
-        }
 
         return base.OnDisconnectedAsync(exception);
     }

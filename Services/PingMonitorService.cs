@@ -13,7 +13,6 @@ public class PingMonitorService : BackgroundService
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly IHubContext<StatusHub> _hubContext;
     private readonly MonitorSettings _settings;
-    private readonly ILogger<PingMonitorService> _logger;
 
     // Keep devices in-memory across ping cycles to preserve session counters
     private static readonly Dictionary<int, MonitoredDevice> _inMemoryDeviceCache = new();
@@ -28,13 +27,10 @@ public class PingMonitorService : BackgroundService
         _scopeFactory = scopeFactory;
         _hubContext = hubContext;
         _settings = settings.Value;
-        _logger = logger;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation("PingMonitorService starting. Interval: {Interval}s, Timeout: {Timeout}ms",
-            _settings.PingIntervalSeconds, _settings.PingTimeoutMs);
 
         await SeedDevicesAsync(stoppingToken);
 
@@ -48,18 +44,10 @@ public class PingMonitorService : BackgroundService
             }
             catch (OperationCanceledException)
             {
-                // Graceful shutdown — expected when the host is stopping.
                 break;
             }
         }
-
-        _logger.LogInformation("PingMonitorService stopped.");
     }
-
-    /// <summary>
-    /// Gets the in-memory cached devices with their current session statistics.
-    /// This preserves the TotalPings and SuccessfulPings counters across requests.
-    /// </summary>
     public static IList<MonitoredDevice> GetCachedDevices()
     {
         lock (_cacheLock)
@@ -79,7 +67,6 @@ public class PingMonitorService : BackgroundService
             .Select(g => g.First())
             .ToDictionary(d => d.IpAddress, StringComparer.OrdinalIgnoreCase);
 
-        // Remove stale devices that are no longer in appsettings.json.
         var staleDevices = existingDevices
             .Where(d => !configByIp.ContainsKey(d.IpAddress))
             .ToList();
@@ -87,7 +74,6 @@ public class PingMonitorService : BackgroundService
         if (staleDevices.Count > 0)
         {
             db.Devices.RemoveRange(staleDevices);
-            _logger.LogInformation("Removed {Count} stale device(s) not found in MonitorSettings.Devices", staleDevices.Count);
         }
 
         foreach (var deviceConfig in configByIp.Values)
@@ -104,11 +90,9 @@ public class PingMonitorService : BackgroundService
                     Status = "Unknown",
                     LastChecked = DateTime.UtcNow
                 });
-                _logger.LogInformation("Seeded device {Name} ({IpAddress})", deviceConfig.Name, deviceConfig.IpAddress);
                 continue;
             }
 
-            // Keep name synced when the same IP is renamed in config.
             if (!string.Equals(existing.Name, deviceConfig.Name, StringComparison.Ordinal))
             {
                 existing.Name = deviceConfig.Name;
@@ -126,7 +110,7 @@ public class PingMonitorService : BackgroundService
         List<MonitoredDevice> devices;
         try
         {
-            // Use in-memory cache if available, otherwise load from database
+            
             lock (_cacheLock)
             {
                 if (_inMemoryDeviceCache.Count > 0)
@@ -135,7 +119,7 @@ public class PingMonitorService : BackgroundService
                 }
                 else
                 {
-                    // First run: load from database synchronously to populate cache
+                    
                     devices = db.Devices.ToList();
                     foreach (var device in devices)
                     {
@@ -146,13 +130,11 @@ public class PingMonitorService : BackgroundService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to load devices — skipping this cycle");
             return;
         }
 
         if (devices.Count == 0)
         {
-            _logger.LogWarning("No devices found in database. Check MonitorSettings.Devices in appsettings.json.");
             return;
         }
 
@@ -168,8 +150,6 @@ public class PingMonitorService : BackgroundService
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Unexpected error pinging {Name} ({IpAddress}) — marking Offline",
-                    device.Name, device.IpAddress);
                 pingResult = ("Offline", null);
             }
 
@@ -179,12 +159,9 @@ public class PingMonitorService : BackgroundService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to persist status update for {Name} ({IpAddress})",
-                    device.Name, device.IpAddress);
             }
         }
 
-        // Broadcast the updated devices to all SignalR clients
         try
         {
             var refreshed = devices
@@ -204,12 +181,9 @@ public class PingMonitorService : BackgroundService
                 .ToList();
 
             await _hubContext.Clients.All.SendAsync("StatusUpdate", refreshed, ct);
-            _logger.LogInformation("Ping cycle complete — broadcast {Count} device statuses to all clients.",
-                refreshed.Count);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to broadcast StatusUpdate via SignalR");
         }
     }
 
@@ -226,7 +200,6 @@ public class PingMonitorService : BackgroundService
                 _ => "Offline"
             };
 
-            // Capture latency only on successful pings
             int? latencyMs = reply.Status == IPStatus.Success ? (int)reply.RoundtripTime : null;
             return (status, latencyMs);
         }
@@ -249,17 +222,14 @@ public class PingMonitorService : BackgroundService
         bool wasOfflineOrTimeout = previousStatus is "Offline" or "Timeout";
         bool isNowOfflineOrTimeout = newStatus is "Offline" or "Timeout";
 
-        // Track ping attempt in-memory (not saved to database)
         device.CurrentSessionTotalPings++;
         if (isNowOnline && latencyMs.HasValue)
         {
             device.LastLatencyMs = latencyMs.Value;
             device.CurrentSessionSuccessfulPings++;
-            // Track latency for average calculation
             device.CurrentSessionLatencies.Add(latencyMs.Value);
         }
 
-        // Transition: Online → Offline/Timeout — open a new downtime event.
         if (wasOnline && isNowOfflineOrTimeout)
         {
             db.DowntimeEvents.Add(new DowntimeEvent
@@ -270,11 +240,9 @@ public class PingMonitorService : BackgroundService
                 WentOfflineAt = DateTime.UtcNow,
                 CameBackOnlineAt = null
             });
-            _logger.LogWarning("ALERT: {Name} ({IpAddress}) transitioned Online → {Status}",
-                device.Name, device.IpAddress, newStatus);
         }
 
-        // Transition: Offline/Timeout → Online — close the most recent open downtime event if it exceeds 2 minutes.
+        
         if (wasOfflineOrTimeout && isNowOnline)
         {
             var openEvent = await db.DowntimeEvents
@@ -286,21 +254,13 @@ public class PingMonitorService : BackgroundService
             {
                 var downtimeDuration = DateTime.UtcNow - openEvent.WentOfflineAt;
                 
-                // Only persist downtime events longer than 2 minutes to prevent database flooding
                 if (downtimeDuration.TotalMinutes >= 2)
                 {
                     openEvent.CameBackOnlineAt = DateTime.UtcNow;
-                    _logger.LogInformation(
-                        "RECOVERY: {Name} ({IpAddress}) is back Online after {Duration:F1} minutes.",
-                        device.Name, device.IpAddress, downtimeDuration.TotalMinutes);
                 }
                 else
                 {
-                    // Discard downtime events shorter than 2 minutes
                     db.DowntimeEvents.Remove(openEvent);
-                    _logger.LogDebug(
-                        "TRANSIENT BLIP: {Name} ({IpAddress}) was down for {Duration:F2} seconds (below 2-minute threshold).",
-                        device.Name, device.IpAddress, downtimeDuration.TotalSeconds);
                 }
             }
         }
@@ -313,19 +273,16 @@ public class PingMonitorService : BackgroundService
             device.LastSeen = DateTime.UtcNow;
         }
 
-        // Update device metrics from in-memory session stats
         if (device.CurrentSessionTotalPings > 0)
         {
             device.UptimePercentage = (device.CurrentSessionSuccessfulPings * 100.0) / device.CurrentSessionTotalPings;
         }
 
-        // Calculate average latency from tracked values
         if (device.CurrentSessionLatencies.Count > 0)
         {
             device.AverageLatencyMs = device.CurrentSessionLatencies.Average();
         }
 
-        // Check if 24 hours have passed — archive and reset session
         var sessionDuration = DateTime.UtcNow - device.CurrentSessionStartTime;
         if (sessionDuration.TotalHours >= 24)
         {
@@ -337,7 +294,6 @@ public class PingMonitorService : BackgroundService
 
     private async Task ArchiveDaily24hrStatsAndResetAsync(AppDbContext db, MonitoredDevice device, CancellationToken ct)
     {
-        // Archive the current 24-hour stats
         var dailyStats = new DailyStatistics
         {
             DeviceId = device.Id,
@@ -353,12 +309,7 @@ public class PingMonitorService : BackgroundService
         };
 
         db.DailyStatistics.Add(dailyStats);
-        _logger.LogInformation(
-            "ARCHIVED: {Name} 24hr stats - {Total} pings, {Successful} successful, {Uptime:F1}% uptime, {AvgLatency:F0}ms avg latency",
-            device.Name, device.CurrentSessionTotalPings, device.CurrentSessionSuccessfulPings,
-            device.UptimePercentage ?? 0, device.AverageLatencyMs ?? 0);
 
-        // Reset session counters
         device.CurrentSessionTotalPings = 0;
         device.CurrentSessionSuccessfulPings = 0;
         device.CurrentSessionLatencies.Clear();
