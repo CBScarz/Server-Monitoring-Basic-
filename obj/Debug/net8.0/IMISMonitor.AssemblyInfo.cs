@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("IMISMonitor")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4301c302d6084fbedc0e3a8fedca94315da4f341")]
 [assembly: System.Reflection.AssemblyProductAttribute("IMISMonitor")]
 [assembly: System.Reflection.AssemblyTitleAttribute("IMISMonitor")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
