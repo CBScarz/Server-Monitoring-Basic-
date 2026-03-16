@@ -1,0 +1,123 @@
+@page
+@model LogsModel
+@{
+    ViewData["Title"] = "Log History — IMIS Network Monitor";
+}
+
+<!-- ─── Page Header ────────────────────────────────────────────────────────── -->
+<div class="bg-white border-bottom py-3 px-4">
+    <h1 class="fs-4 fw-bold mb-0">Downtime Log History</h1>
+    <p class="text-muted small mb-0">All recorded downtime events</p>
+</div>
+
+<!-- ─── Filter Bar ────────────────────────────────────────────────────────── -->
+<div class="bg-white border-bottom py-3 px-4">
+    <div class="row g-2 align-items-end">
+
+        <!-- Device filter -->
+        <div class="col-12 col-sm-auto">
+            <label for="filter-device" class="form-label small fw-semibold mb-1">Device</label>
+            <select id="filter-device" class="form-select form-select-sm" aria-label="Filter by device">
+                <option value="">All Devices</option>
+            </select>
+        </div>
+
+        <!-- Date From -->
+        <div class="col-12 col-sm-auto">
+            <label for="filter-from" class="form-label small fw-semibold mb-1">From</label>
+            <input type="date" id="filter-from"
+                   class="form-control form-control-sm"
+                   aria-label="Filter from date" />
+        </div>
+
+        <!-- Date To -->
+        <div class="col-12 col-sm-auto">
+            <label for="filter-to" class="form-label small fw-semibold mb-1">To</label>
+            <input type="date" id="filter-to"
+                   class="form-control form-control-sm"
+                   aria-label="Filter to date" />
+        </div>
+
+        <!-- Buttons -->
+        <div class="col-12 col-sm-auto d-flex gap-2">
+            <button type="button" id="apply-filters" class="btn btn-primary btn-sm">
+                <i class="bi bi-funnel-fill me-1" aria-hidden="true"></i>Apply
+            </button>
+            <button type="button" id="clear-filters" class="btn btn-outline-secondary btn-sm">Clear</button>
+        </div>
+
+    </div>
+</div>
+
+<!-- ─── Main Content ──────────────────────────────────────────────────────── -->
+<div class="container-fluid px-4 py-4">
+
+    <!-- Active filter notice -->
+    <div id="filter-active-banner"
+         class="alert alert-info alert-dismissible d-none mb-3"
+         role="status">
+        <i class="bi bi-funnel-fill me-1" aria-hidden="true"></i>
+        Showing filtered results.
+        <button type="button" class="btn-close" id="dismiss-filter-banner" aria-label="Dismiss"></button>
+    </div>
+
+    <!-- Error Banner -->
+    <div id="logs-error-banner"
+         class="alert alert-danger alert-dismissible d-none mb-3"
+         role="alert">
+        <i class="bi bi-exclamation-circle-fill me-1" aria-hidden="true"></i>
+        <span id="logs-error-message">Failed to load log data.</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Dismiss"></button>
+    </div>
+
+    <!-- Loading spinner -->
+    <div id="logs-loading" class="d-flex justify-content-center align-items-center py-5">
+        <div class="spinner-border text-primary me-3" role="status" aria-hidden="true"></div>
+        <span class="text-muted">Loading logs…</span>
+    </div>
+
+    <!-- Table Container (hidden until data loaded) -->
+    <div id="logs-table-container" class="d-none">
+
+        <!-- Responsive table -->
+        <div class="table-responsive">
+            <table class="table table-hover table-bordered table-striped align-middle"
+                   aria-label="Downtime log events">
+                <thead class="table-dark">
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">PC Name</th>
+                        <th scope="col">IP Address</th>
+                        <th scope="col">Went Offline</th>
+                        <th scope="col">Came Back Online</th>
+                        <th scope="col">Duration Offline</th>
+                    </tr>
+                </thead>
+                <tbody id="logs-tbody">
+                    <!-- Rows injected by logs.js -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- No results message -->
+        <div id="no-results" class="d-none text-center py-5">
+            <i class="bi bi-inbox fs-1 text-muted d-block mb-2" aria-hidden="true"></i>
+            <p class="text-muted">No events found for the selected filters.</p>
+        </div>
+
+        <!-- Pagination -->
+        <nav id="pagination-container" class="d-none" aria-label="Log history pagination">
+            <ul class="pagination pagination-sm justify-content-center" id="pagination-list">
+                <!-- Rendered by logs.js -->
+            </ul>
+            <p class="text-center text-muted small" id="pagination-info"></p>
+        </nav>
+
+    </div>
+
+</div>
+
+@section Scripts {
+    <script src="~/js/logs.js" asp-append-version="true"></script>
+}
+

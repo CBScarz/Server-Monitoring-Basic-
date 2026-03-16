@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="~/vendor/bootstrap/css/bootstrap.min.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/vendor/bootstrap-icons/font/bootstrap-icons.min.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/custom.css" asp-append-version="true" />
+</head>
+<body class="d-flex flex-column min-vh-100 bg-light">
+
+    <!-- ─── Navbar ─────────────────────────────────────────────────────────── -->
+    <nav class="navbar navbar-dark bg-dark sticky-top">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand fw-bold fs-5" href="/">
+                <i class="bi bi-hdd-network me-2" aria-hidden="true"></i>IMIS Network Monitor
+            </a>
+            <ul class="navbar-nav flex-row gap-3">
+                <li class="nav-item">
+                    <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Index" ? "active" : string.Empty)"
+                       href="/"
+                       aria-current="@(ViewContext.RouteData.Values["page"]?.ToString() == "/Index" ? "page" : null)">
+                        Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Logs" ? "active" : string.Empty)"
+                       href="/logs"
+                       aria-current="@(ViewContext.RouteData.Values["page"]?.ToString() == "/Logs" ? "page" : null)">
+                        Log History
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Statistics" ? "active" : string.Empty)"
+                       href="/statistics"
+                       aria-current="@(ViewContext.RouteData.Values["page"]?.ToString() == "/Statistics" ? "page" : null)">
+                        Statistics
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- ─── SignalR Disconnect Banner (hidden by default) ─────────────────── -->
+    <div id="signalr-status-banner"
+         class="alert alert-warning alert-dismissible d-none mb-0 rounded-0 py-2 px-4 text-center small"
+         role="alert">
+        <i class="bi bi-wifi-off me-1" aria-hidden="true"></i>
+        Connection lost — attempting to reconnect…
+        <button type="button" class="btn-close btn-close-sm" data-bs-dismiss="alert" aria-label="Dismiss"></button>
+    </div>
+
+    <!-- ─── Page Content ───────────────────────────────────────────────────── -->
+    <main class="flex-grow-1">
+        @RenderBody()
+    </main>
+
+    <!-- ─── Device Stats Modal (global) ───────────────────────────────────────── -->
+    <div class="modal fade" id="statsModal" tabindex="-1" aria-labelledby="statsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div>
+                        <h1 class="modal-title fs-5" id="statsModalLabel">Device Statistics</h1>
+                        <p class="text-muted small mb-0" id="statsModalIp"></p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <div class="p-3 bg-light rounded text-center">
+                                <small class="text-muted d-block mb-1">Current Status</small>
+                                <span id="modalStatus" class="badge rounded-pill px-3 py-2"></span>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-3 bg-light rounded text-center">
+                                <small class="text-muted d-block mb-1">Last Checked</small>
+                                <small id="modalLastChecked" class="fw-semibold text-dark"></small>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="p-3 bg-light rounded">
+                                <small class="text-muted d-block mb-2">Uptime (24 Hours)</small>
+                                <div class="d-flex align-items-center">
+                                    <div class="progress flex-grow-1 me-2" style="height: 24px;">
+                                        <div class="progress-bar bg-success" id="modalUptimeBar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                    <span id="modalUptimePercent" class="fw-bold text-nowrap">–</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="p-3 bg-light rounded">
+                                <small class="text-muted d-block mb-1">Last Latency</small>
+                                <h3 class="fs-5 fw-bold mb-0"><span id="modalLastLatency">–</span></h3>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="p-3 bg-light rounded">
+                                <small class="text-muted d-block mb-1">Average Latency (24 Hours)</small>
+                                <h3 class="fs-5 fw-bold mb-0"><span id="modalAvgLatency">–</span></h3>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <div class="p-2 bg-light rounded text-center">
+                                        <small class="text-muted d-block">Successful Pings</small>
+                                        <strong id="modalSuccessful" class="text-success">0</strong>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="p-2 bg-light rounded text-center">
+                                        <small class="text-muted d-block">Failed Pings</small>
+                                        <strong id="modalFailed" class="text-danger">0</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── Footer ────────────────────────────────────────────────────────── -->
+    <footer class="mt-auto py-3 bg-light border-top text-center">
+        <small class="text-muted">IMIS Network Monitor — Internal Use Only</small>
+    </footer>
+
+    <!-- ─── Scripts ───────────────────────────────────────────────────────── -->
+    <script src="~/vendor/bootstrap/js/bootstrap.bundle.min.js" asp-append-version="true"></script>
+    <script src="~/vendor/signalr/signalr.min.js" asp-append-version="true"></script>
+
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

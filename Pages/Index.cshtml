@@ -1,0 +1,66 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Dashboard — IMIS Network Monitor";
+}
+
+<!-- ─── Page Header / Status Summary Bar ──────────────────────────────────── -->
+<div class="bg-white border-bottom py-3 px-4 d-flex align-items-center justify-content-between flex-wrap gap-2"
+     aria-live="polite"
+     aria-atomic="true">
+    <div>
+        <h1 class="fs-4 fw-bold mb-0">Network Status</h1>
+        <p class="text-muted small mb-0">Auto-refreshing via SignalR</p>
+    </div>
+    <div class="d-flex align-items-center gap-3 flex-wrap">
+        <span class="badge bg-success rounded-pill fs-6 px-3 py-2">
+            <i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i>
+            <span id="count-online">0</span> Online
+        </span>
+        <span class="badge bg-danger rounded-pill fs-6 px-3 py-2">
+            <i class="bi bi-x-circle-fill me-1" aria-hidden="true"></i>
+            <span id="count-offline">0</span> Offline
+        </span>
+        <span class="badge bg-warning text-dark rounded-pill fs-6 px-3 py-2">
+            <i class="bi bi-exclamation-triangle-fill me-1" aria-hidden="true"></i>
+            <span id="count-timeout">0</span> Timeout
+        </span>
+        <span class="badge bg-secondary rounded-pill fs-6 px-3 py-2">
+            <i class="bi bi-question-circle-fill me-1" aria-hidden="true"></i>
+            <span id="count-unknown">0</span> Unknown
+        </span>
+        <span class="d-flex align-items-center text-success small fw-semibold" id="live-indicator">
+            <span class="spinner-grow spinner-grow-sm me-1" role="status" aria-hidden="true"></span>
+            Live
+        </span>
+    </div>
+</div>
+
+<!-- ─── Loading Spinner ────────────────────────────────────────────────────── -->
+<div id="loading-spinner" class="d-flex justify-content-center align-items-center py-5">
+    <div class="spinner-border text-primary me-3" role="status" aria-hidden="true"></div>
+    <span class="text-muted">Loading device status…</span>
+</div>
+
+<!-- ─── Error Banner ───────────────────────────────────────────────────────── -->
+<div id="error-banner"
+     class="alert alert-danger alert-dismissible mx-4 mt-3 d-none"
+     role="alert">
+    <i class="bi bi-exclamation-circle-fill me-1" aria-hidden="true"></i>
+    <span id="error-message">Failed to load device data.</span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Dismiss"></button>
+</div>
+
+<!-- ─── Device Grid ────────────────────────────────────────────────────────── -->
+<div class="container-fluid px-4 py-4">
+    <div class="row g-3"
+         id="device-grid"
+         aria-live="polite"
+         aria-label="Device status grid">
+        <!-- Cards injected by dashboard.js -->
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/dashboard.js" asp-append-version="true"></script>
+}

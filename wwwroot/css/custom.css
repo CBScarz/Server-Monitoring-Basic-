@@ -1,0 +1,206 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   IMIS Network Monitor — Custom CSS
+   Supplements Bootstrap 5. No inline styles are used anywhere in the project.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* ─── Status Card Left-Border Accents ──────────────────────────────────────── */
+.card-status-online  { border-left: 4px solid #198754 !important; }
+.card-status-offline { border-left: 4px solid #dc3545 !important; }
+.card-status-timeout { border-left: 4px solid #ffc107 !important; }
+.card-status-unknown { border-left: 4px solid #6c757d !important; }
+
+/* ─── Card Hover Lift ───────────────────────────────────────────────────────── */
+.card {
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+  transform: translateY(-2px);
+}
+
+/* ─── Device Grid Minimum Card Height ──────────────────────────────────────── */
+#device-grid .card {
+  min-height: 130px;
+  cursor: pointer;
+}
+
+/* ─── PC Name Truncation with tooltip fallback ─────────────────────────────── */
+.card-title {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ─── Status Dot (inline colored indicator, reusable) ──────────────────────── */
+.status-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 4px;
+  flex-shrink: 0;
+}
+
+.status-dot-online  { background-color: #198754; }
+.status-dot-offline { background-color: #dc3545; }
+.status-dot-timeout { background-color: #ffc107; }
+.status-dot-unknown { background-color: #6c757d; }
+
+/* ─── Summary Bar ───────────────────────────────────────────────────────────── */
+.summary-bar {
+  background-color: #ffffff;
+  border-bottom: 1px solid #dee2e6;
+  padding: 12px 16px;
+}
+
+/* ─── Loading Spinner Minimum Height ────────────────────────────────────────── */
+#loading-spinner,
+#logs-loading {
+  min-height: 200px;
+}
+
+/* ─── SignalR Disconnect Banner ─────────────────────────────────────────────── */
+#signalr-status-banner {
+  z-index: 1000;
+  border-radius: 0;
+}
+
+/* ─── Live Indicator Color Transition ───────────────────────────────────────── */
+#live-indicator {
+  transition: color 0.3s ease;
+}
+
+/* ─── Table: Responsive Overflow ────────────────────────────────────────────── */
+.table-responsive {
+  -webkit-overflow-scrolling: touch;
+  border-radius: 8px;
+  overflow-x: auto;
+}
+
+/* ─── Modal Styling ──────────────────────────────────────────────────────────── */
+.modal {
+  z-index: 1050 !important;
+}
+
+.modal-backdrop {
+  z-index: 1049 !important;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-backdrop.show {
+  opacity: 1 !important;
+}
+
+.modal.show {
+  display: block !important;
+}
+
+/* ─── Stats Modal Enhanced Design ────────────────────────────────────────────── */
+#statsModal .modal-content {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+#statsModal .modal-header {
+  color: white;
+}
+
+/* Status-based header gradients */
+#statsModal .modal-header-online {
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+}
+
+#statsModal .modal-header-offline {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+}
+
+#statsModal .modal-header-timeout {
+  background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+}
+
+#statsModal .modal-header-unknown {
+  background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+}
+
+#statsModal .modal-header .modal-title {
+  color: white;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+#statsModal .modal-header .text-muted {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+#statsModal .btn-close {
+  filter: brightness(0) invert(1);
+}
+
+#statsModal .card {
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+#statsModal .card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+#statsModal .card-body {
+  border-radius: 8px;
+}
+
+#statsModal .progress {
+  border-radius: 12px;
+  background-color: rgba(0, 0, 0, 0.05);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+#statsModal .progress-bar {
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+#statsModal .badge {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+#statsModal .bi {
+  opacity: 0.85;
+  transition: opacity 0.2s ease;
+}
+
+#statsModal .card-body .bi:hover {
+  opacity: 1;
+}
+
+/* ─── Table: Consistent cell vertical alignment ─────────────────────────────── */
+.table td,
+.table th {
+  vertical-align: middle;
+}
+
+/* ─── Mobile Responsive Adjustments (< 576px) ──────────────────────────────── */
+@media (max-width: 575.98px) {
+  /* Slightly smaller badge text on very small screens */
+  .summary-bar .badge,
+  .bg-white .badge {
+    font-size: 0.8rem !important;
+    padding: 0.4rem 0.6rem !important;
+  }
+
+  /* Stack filter buttons full-width */
+  #apply-filters,
+  #clear-filters {
+    width: 100%;
+  }
+
+  /* Tighter horizontal padding on small screens */
+  .container-fluid {
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+  }
+}
