@@ -19,16 +19,16 @@
             <ul class="navbar-nav flex-row gap-3">
                 <li class="nav-item">
                     <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Index" ? "active" : string.Empty)"
-                       href="/"
+                       href="http://leisql:9287/Admin/Dashboard"
                        aria-current="@(ViewContext.RouteData.Values["page"]?.ToString() == "/Index" ? "page" : null)">
-                        Dashboard
+                        IMISLogger
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Logs" ? "active" : string.Empty)"
-                       href="/logs"
-                       aria-current="@(ViewContext.RouteData.Values["page"]?.ToString() == "/Logs" ? "page" : null)">
-                        Log History
+                    <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Index" ? "active" : string.Empty)"
+                       href="/"
+                       aria-current="@(ViewContext.RouteData.Values["page"]?.ToString() == "/Index" ? "page" : null)">
+                        Dashboard
                     </a>
                 </li>
                 <li class="nav-item">

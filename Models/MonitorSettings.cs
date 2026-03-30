@@ -11,4 +11,5 @@ public class DeviceConfig
 {
     public string Name { get; set; } = string.Empty;
     public string IpAddress { get; set; } = string.Empty;
+    public string MacAddress { get; set; } = string.Empty;
 }

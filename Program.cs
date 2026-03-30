@@ -1,8 +1,6 @@
-using IMISMonitor.Data;
 using IMISMonitor.Hubs;
 using IMISMonitor.Models;
 using IMISMonitor.Services;
-using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,10 +8,6 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.Configure<MonitorSettings>(
     builder.Configuration.GetSection("MonitorSettings"));
-
-
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 
 builder.Services.AddSignalR();
@@ -44,9 +38,7 @@ builder.Services.AddCors(options =>
     {
         policy
             .WithOrigins(
-                "http://localhost:5000",
-                "https://localhost:5001",
-                "http://localhost:3000")
+                "http://localhost:5000")
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
@@ -64,13 +56,6 @@ builder.Services.AddCors(options =>
 
 
 var app = builder.Build();
-
-
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.Migrate();
-}
 
 
 if (app.Environment.IsDevelopment())

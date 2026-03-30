@@ -5,6 +5,7 @@ public class MonitoredDevice
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string IpAddress { get; set; } = string.Empty;
+    public string MacAddress { get; set; } = string.Empty;
     public string Status { get; set; } = "Unknown";
     public DateTime? LastSeen { get; set; }
     public DateTime LastChecked { get; set; }

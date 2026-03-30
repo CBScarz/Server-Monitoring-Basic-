@@ -1,22 +1,18 @@
-using IMISMonitor.Data;
 using IMISMonitor.Models;
 using IMISMonitor.Services;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.EntityFrameworkCore;
 
 namespace IMISMonitor.Pages;
 
 public class StatisticsModel : PageModel
 {
-    private readonly AppDbContext _db;
     private readonly ILogger<StatisticsModel> _logger;
 
     public IList<MonitoredDevice> Devices { get; set; } = new List<MonitoredDevice>();
     public Dictionary<int, DeviceStats> DeviceStatsMap { get; set; } = new Dictionary<int, DeviceStats>();
 
-    public StatisticsModel(AppDbContext db, ILogger<StatisticsModel> logger)
+    public StatisticsModel(ILogger<StatisticsModel> logger)
     {
-        _db = db;
         _logger = logger;
     }
 

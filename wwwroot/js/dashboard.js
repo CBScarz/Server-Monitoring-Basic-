@@ -104,6 +104,7 @@ function renderCard(device) {
           ${escapeHtml(device.name)}
         </h2>
         <p class="font-monospace text-muted small mb-0">${escapeHtml(device.ipAddress)}</p>
+        <p class="font-monospace text-muted small mb-0">${escapeHtml(device.macAddress)}</p>
         <div class="mt-auto pt-2 d-flex align-items-center justify-content-between">
           <span class="badge ${badgeClass} rounded-pill px-2 py-1">
             <i class="bi ${icon} me-1" aria-hidden="true"></i>${escapeHtml(device.status)}
@@ -349,25 +350,15 @@ async function showStatsModal(device) {
     
     console.log('[dashboard] Stats set. Device uptime:', uptimePercent, 'lastLatency:', freshDevice.lastLatencyMs, 'avgLatency:', freshDevice.averageLatencyMs);
     
-    // Fetch test counts from the API
-    if (successfulEl && failedEl) {
-      try {
-        const latencyResponse = await fetch(`/api/devices/${freshDevice.id}/latency-trends?hours=24`);
-        if (latencyResponse.ok) {
-          const trends = await latencyResponse.json();
-          const successful = trends.filter(t => t.wasSuccessful).length;
-          const failed = trends.filter(t => !t.wasSuccessful).length;
-          
-          successfulEl.textContent = successful;
-          failedEl.textContent = failed;
-          console.log('[dashboard] Fetched latency trends - successful:', successful, 'failed:', failed);
-        }
-      } catch (err) {
-        console.error('[dashboard] Failed to fetch latency trends:', err);
-        successfulEl.textContent = '–';
-        failedEl.textContent = '–';
-      }
-    }
+    // Display ping counts from device session data
+    const successful = freshDevice.currentSessionSuccessfulPings ?? 0;
+    const total = freshDevice.currentSessionTotalPings ?? 0;
+    const failed = total - successful;
+    
+    if (successfulEl) successfulEl.textContent = successful;
+    if (failedEl) failedEl.textContent = failed;
+    
+    console.log('[dashboard] Ping counts - successful:', successful, 'failed:', failed, 'total:', total);
     
     // Now show the modal - let Bootstrap handle the display
     console.log('[dashboard] Creating Bootstrap modal instance and showing...');
